@@ -228,11 +228,12 @@
     const qrContainer = document.getElementById('qrcode');
 
     // Generate QR Code function
-    function generateQRCode() {
+    function generateQRCodeWithId(id, name, email, phone) {
       const formData = {
-        name: document.getElementById('name').value.trim(),
-        email: document.getElementById('email').value.trim(),
-        phone: document.getElementById('phone').value.trim(),
+        id: id,
+        name: name,
+        email: email,
+        phone: phone
       };
       qrContainer.innerHTML = '';
       const userInfo = Object.entries(formData)
@@ -269,9 +270,10 @@
       try {
         const { data, error } = await window.supabase.submitContactForm(name, email, phone);
         if (error) throw error;
-        alert('Registration successful!');
+        const userId = data[0].id;
+        alert('Registration successful! Your User ID: ' + userId);
+        generateQRCodeWithId(userId, name, email, phone);
         form.reset();
-        qrContainer.innerHTML = '';
       } catch (error) {
         console.error('Error:', error);
         alert('Registration failed. Please try again.');
