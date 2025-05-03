@@ -1,9 +1,9 @@
 // Supabase configuration
-const SUPABASE_URL = 'https://yyvccwdfjtdauzqpdvuk.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmNjd2RmanRkYXV6cXBkdnVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYyNzU4NzgsImV4cCI6MjA2MTg1MTg3OH0.Kx2k_gZ1vcLQiLX_dbuqupQwC7V3Fey-_utVkVlgHPQ';
-
-// Initialize Supabase client
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabase = window.supabase.createClient(
+    'https://yyvccwdfjtdauzqpdvuk.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmNjd2RmanRkYXV6cXBkdnVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYyNzU4NzgsImV4cCI6MjA2MTg1MTg3OH0.Kx2k_gZ1vcLQiLX_dbuqupQwC7V3Fey-_utVkVlgHPQ'
+  );
+  
 
 // Example functions for database operations
 async function signUp(email, password) {
