@@ -25,6 +25,9 @@
   <link href="css/style.css" rel="stylesheet" />
   <!-- responsive style -->
   <link href="css/responsive.css" rel="stylesheet" />
+
+  <!-- Supabase -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
 
 <body class="sub_page">
@@ -219,151 +222,87 @@
 
   <script src="js/jquery-3.4.1.min.js"></script>
   <script src="js/bootstrap.js"></script>
-  <script src="js/custom.js"></script>
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-<script>
-  document.getElementById("contactForm").onsubmit = async (e) => {
-    e.preventDefault();
-    const supabase = supabase.createClient(
-      "https://YOUR_PROJECT.supabase.co",
-      "YOUR_ANON_KEY"
-    );
-    
-    const { data, error } = await supabase.from("users").insert([{
-      name: document.getElementById("name").value,
-      address: document.getElementById("email").value,
-      phone: document.getElementById("phone").value
-    }]).select();
+  <script src="js/supabase.js"></script>
+  <script>
+    // Form submission handler
+    async function handleSubmit(event) {
+      event.preventDefault();
+      
+      const userData = {
+        name: document.getElementById('name').value.trim(),
+        address: document.getElementById('email').value.trim(),
+        phone: document.getElementById('phone').value.trim(),
+      };
+      
+      if (!userData.name && !userData.address && !userData.phone) {
+        alert('Please fill in at least one field before submitting.');
+        return;
+      }
+      
+      try {
+        // Send data to Supabase
+        const { data, error } = await window.supabase.submitContactForm(
+          userData.name,
+          userData.address,
+          userData.phone
+        );
+        
+        if (error) throw error;
+        
+        // Generate QR code with the data
+        generateQRCode();
+        alert('Registration successful!');
+        // Optionally reset form
+        form.reset();
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Registration failed. Please try again.');
+      }
+    }
 
-    if (error) alert("Error: " + error.message);
-    else alert("Registered! ID: " + data[0].id);
-  };
-</script>
+    // Generate QR Code function
+    function generateQRCode() {
+      // Get form values
+      const formData = {
+        name: document.getElementById('name').value.trim(),
+        address: document.getElementById('email').value.trim(),
+        phone: document.getElementById('phone').value.trim(),
+      };
+      
+      // Clear previous QR code
+      qrContainer.innerHTML = '';
+      
+      // Create data string for QR code
+      const userInfo = Object.entries(formData)
+        .filter(([_, value]) => value)
+        .map(([key, value]) => `${key}: ${value}`)
+        .join('\n');
+      
+      if (userInfo) {
+        // Create QR code
+        new QRCode(qrContainer, {
+          text: userInfo,
+          width: 200,
+          height: 200,
+          colorDark: '#000000',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.H
+        });
+        
+        // Center the QR code
+        qrContainer.style.display = 'flex';
+        qrContainer.style.justifyContent = 'center';
+        qrContainer.style.alignItems = 'center';
+      } else {
+        qrContainer.innerHTML = '<p style="color:red;text-align:center;">Please fill in at least one field</p>';
+      }
+    }
+    
+    // Event Listeners
+    form.addEventListener('submit', handleSubmit);
+  </script>
+  <script src="js/custom.js"></script>
 </body>
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
 <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
-<script>
-  // DOM Elements
-  const form = document.getElementById('contactForm');
-  const qrContainer = document.getElementById('qrcode');
-  let userId = null; // Will be set by server response
-
-  // Generate QR Code function
-  async function generateQRCode() {
-    // Get form values
-    const formData = {
-      name: document.getElementById('name').value.trim(),
-      address: document.getElementById('email').value.trim(), // Note: using email field for address
-      phone: document.getElementById('phone').value.trim(),
-    };
-    
-    // Clear previous QR code
-    qrContainer.innerHTML = '';
-    
-    // Create data string for QR code (without ID initially)
-    const userInfo = Object.entries(formData)
-      .filter(([_, value]) => value)
-      .map(([key, value]) => `${key}: ${value}`)
-      .join('\n');
-    
-    if (userInfo) {
-      // Create temporary QR code without ID
-      new QRCode(qrContainer, {
-        text: userInfo,
-        width: 200,
-        height: 200,
-        colorDark: '#000000',
-        colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.H
-      });
-      
-      // Center the QR code
-      qrContainer.style.display = 'flex';
-      qrContainer.style.justifyContent = 'center';
-      qrContainer.style.alignItems = 'center';
-    } else {
-      qrContainer.innerHTML = '<p style="color:red;text-align:center;">Please fill in at least one field</p>';
-    }
-  }
-  
-  // Form submission handler
-  async function handleSubmit(event) {
-    event.preventDefault();
-    
-    const userData = {
-      name: document.getElementById('name').value.trim(),
-      address: document.getElementById('email').value.trim(),
-      phone: document.getElementById('phone').value.trim(),
-    };
-    
-    if (!userData.name && !userData.address && !userData.phone) {
-      alert('Please fill in at least one field before submitting.');
-      return;
-    }
-    
-    try {
-      // Send data to server
-      const response = await fetch('/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData)
-      });
-      
-      const result = await response.json();
-      
-      if (response.ok) {
-        userId = result.id; // Get the auto-incremented ID from server
-        // Update QR code with the assigned ID
-        updateQRWithId(result.id, userData);
-        alert(`Registration successful!\nYour User ID: ${result.id}`);
-        // Optionally reset form
-        form.reset();
-      } else {
-        throw new Error(result.message || 'Registration failed');
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      alert(error.message);
-    }
-  }
-
-  // Update QR code with assigned ID
-  function updateQRWithId(id, userData) {
-    qrContainer.innerHTML = '';
-    
-    const completeData = {
-      id: id,
-      ...userData,
-      timestamp: new Date().toISOString()
-    };
-    
-    const userInfo = Object.entries(completeData)
-      .filter(([_, value]) => value)
-      .map(([key, value]) => `${key}: ${value}`)
-      .join('\n');
-    
-    new QRCode(qrContainer, {
-      text: userInfo,
-      width: 200,
-      height: 200,
-      colorDark: '#000000',
-      colorLight: '#ffffff',
-      correctLevel: QRCode.CorrectLevel.H
-    });
-    
-    // Display the assigned ID
-    const idDisplay = document.createElement('p');
-    idDisplay.textContent = `User ID: ${id}`;
-    idDisplay.style.textAlign = 'center';
-    idDisplay.style.marginTop = '10px';
-    idDisplay.style.fontWeight = 'bold';
-    qrContainer.appendChild(idDisplay);
-  }
-  
-  // Event Listeners
-  form.addEventListener('submit', handleSubmit);
-</script>
-
 </html>
