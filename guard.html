@@ -127,10 +127,10 @@
             <div id="userInfoDisplay" style="margin-top: 30px; display: none;">
               <div class="card">
                 <div class="card-body">
-                  <h5 class="card-title">User Information</h5>
-                  <p class="card-text"><strong>Name:</strong> <span id="displayName"></span></p>
-                  <p class="card-text"><strong>Address:</strong> <span id="displayAddress"></span></p>
-                  <p class="card-text"><strong>Phone:</strong> <span id="displayPhone"></span></p>
+                  <h5 style="color: rgb(0, 0, 0);" class="card-title">User Information</h5>
+                  <p style="color: rgb(0, 0, 0);" class="card-text"><strong>Name:</strong> <span id="displayName"></span></p>
+                  <p style="color: rgb(0, 0, 0);" class="card-text"><strong>Email:</strong> <span id="displayEmail"></span></p>
+                  <p style="color: rgb(0, 0, 0);" class="card-text"><strong>Phone:</strong> <span id="displayPhone"></span></p>
                 </div>
               </div>
             </div>
@@ -217,37 +217,45 @@
   <script src="js/jquery-3.4.1.min.js"></script>
   <script src="js/bootstrap.js"></script>
   <script src="js/custom.js"></script>
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <script>
-    document.getElementById("userInfoForm").onsubmit = async (e) => {
-      e.preventDefault();
-      const userId = document.getElementById("userId").value;
-      
-      const supabase = supabase.createClient(
-        "https://YOUR_PROJECT.supabase.co",
-        "YOUR_ANON_KEY"
-      );
-      
-      const { data, error } = await supabase
-        .from("users")
-        .select("*")
-        .eq("id", userId)
-        .single();
-
-      if (error) {
-        alert("Error: " + error.message);
-        document.getElementById("userInfoDisplay").style.display = "none";
-      } else if (data) {
-        document.getElementById("displayName").textContent = data.name;
-        document.getElementById("displayAddress").textContent = data.address;
-        document.getElementById("displayPhone").textContent = data.phone;
-        document.getElementById("userInfoDisplay").style.display = "block";
-      } else {
-        alert("No user found with that ID");
-        document.getElementById("userInfoDisplay").style.display = "none";
-      }
-    };
-  </script>
+ <!-- Load Supabase JS first -->
+<!-- Load Supabase JS first -->
+<!-- Load scripts in this exact order -->
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script>
+document.getElementById("userInfoForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const userId = document.getElementById("userId").value.trim();
+  
+  try {
+    // Show loading state
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Searching...";
+    
+    // Get user data
+    const user = await window.supabaseFunctions.getContactById(userId);
+    console.log('Retrieved user:', user); // Debug log
+    
+    if (user) {
+      // Update UI
+      document.getElementById("displayName").textContent = user.name || "N/A";
+      document.getElementById("displayEmail").textContent = user.email || "N/A";
+      document.getElementById("displayPhone").textContent = user.phone || "N/A";
+      document.getElementById("userInfoDisplay").style.display = "block";
+    } else {
+      alert("No user found with ID: " + userId);
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    alert("Error: " + error.message);
+  } finally {
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = false;
+    submitBtn.textContent = "View Information";
+  }
+});
+</script>
 </body>
 
 </html>

@@ -1,8 +1,8 @@
 // Supabase configuration
 const supabase = window.supabase.createClient(
-    'https://yyvccwdfjtdauzqpdvuk.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmNjd2RmanRkYXV6cXBkdnVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYyNzU4NzgsImV4cCI6MjA2MTg1MTg3OH0.Kx2k_gZ1vcLQiLX_dbuqupQwC7V3Fey-_utVkVlgHPQ'
-  );
+    "https://yyvccwdfjtdauzqpdvuk.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmNjd2RmanRkYXV6cXBkdnVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYyNzU4NzgsImV4cCI6MjA2MTg1MTg3OH0.Kx2k_gZ1vcLQiLX_dbuqupQwC7V3Fey-_utVkVlgHPQ"
+);
   
 
 // Example functions for database operations
@@ -34,7 +34,7 @@ async function submitContactForm(name, address, phone) {
         .insert([
             { 
                 name: name,
-                address: address,
+                email: email,
                 phone: phone
             }
         ]);
@@ -49,3 +49,23 @@ window.supabase = {
     submitContactForm,
     client: supabase
 }; 
+
+// Function to get contact by ID
+async function getContactById(id) {
+  const { data, error } = await supabase
+    .from('contacts')
+    .select('*')
+    .eq('id', id)
+    .single();
+    
+  if (error) {
+    console.error('Supabase error:', error);
+    throw error;
+  }
+  return data;
+}
+
+// Make functions available
+window.supabaseFunctions = {
+  getContactById
+};

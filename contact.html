@@ -263,22 +263,30 @@
       const name = document.getElementById('name').value.trim();
       const email = document.getElementById('email').value.trim();
       const phone = document.getElementById('phone').value.trim();
+
       if (!name && !email && !phone) {
         alert('Please fill in at least one field before submitting.');
         return;
       }
+
       try {
-        const { data, error } = await window.supabase.submitContactForm(name, email, phone);
+        const { data, error } = await supabase
+          .from('contacts')
+          .insert([{ name, email, phone }])
+          .select();
+
         if (error) throw error;
+
         const userId = data[0].id;
         alert('Registration successful! Your User ID: ' + userId);
         generateQRCodeWithId(userId, name, email, phone);
         form.reset();
-      } catch (error) {
+        } catch (error) {
         console.error('Error:', error);
         alert('Registration failed. Please try again.');
       }
     });
+
   </script>
   <script src="js/custom.js"></script>
 </body>
